@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="example.com.android_graphic_editor.MainActivity">
+
+    <item
+        android:id="@+id/Color_Draw"
+        android:title="@string/Color_Draw" />
+
+    <item
+        android:id="@+id/Size"
+        android:title="@string/Size" />
+
+    <item
+        android:id="@+id/Lines"
+        android:title="@string/Lines">
+        <menu>
+            <item
+                android:id="@+id/Usual_Line"
+                android:title="@string/Usual_line" />
+            <item
+                android:id="@+id/Emboss"
+                android:title="@string/Emboss" />
+            <item
+                android:id="@+id/Blur"
+                android:title="@string/Blur" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/Path_Effects"
+        android:title="@string/Path_effects">
+        <menu>
+            <item
+                android:id="@+id/No_Effects"
+                android:title="@string/No_effects"
+                />
+            <item
+                android:id="@+id/DashPathEffect"
+                android:title="@string/Dot_dash"
+                />
+            <item
+                android:id="@+id/DiscretePathEffect"
+                android:title="@string/Broken_straight_line"
+                />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/Save"
+        android:title="@string/Save" />
+
+    <item
+        android:id="@+id/Eraser"
+        android:title="@string/Eraser" />
+
+    <item
+        android:id="@+id/Clear"
+        android:layout_height="wrap_content"
+        android:title="@string/Clear" />
+
+</menu>
