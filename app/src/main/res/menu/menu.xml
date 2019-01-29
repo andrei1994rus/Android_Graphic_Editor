@@ -5,59 +5,55 @@
     tools:context="example.com.android_graphic_editor.MainActivity">
 
     <item
-        android:id="@+id/Color_Draw"
-        android:title="@string/Color_Draw" />
+        android:id="@+id/colorLine"
+        android:title="@string/lineColor" />
 
     <item
-        android:id="@+id/Size"
-        android:title="@string/Size" />
+        android:id="@+id/sizeLine"
+        android:title="@string/sizeLine" />
 
     <item
-        android:id="@+id/Lines"
-        android:title="@string/Lines">
+        android:id="@+id/lines"
+        android:title="@string/lines">
         <menu>
             <item
-                android:id="@+id/Usual_Line"
-                android:title="@string/Usual_line" />
+                android:id="@+id/usualLine"
+                android:title="@string/usualLine" />
             <item
-                android:id="@+id/Emboss"
-                android:title="@string/Emboss" />
+                android:id="@+id/emboss"
+                android:title="@string/emboss" />
             <item
-                android:id="@+id/Blur"
-                android:title="@string/Blur" />
+                android:id="@+id/blur"
+                android:title="@string/blur" />
         </menu>
     </item>
 
     <item
-        android:id="@+id/Path_Effects"
-        android:title="@string/Path_effects">
+        android:id="@+id/PathEffects"
+        android:title="@string/pathEffects">
         <menu>
             <item
-                android:id="@+id/No_Effects"
-                android:title="@string/No_effects"
-                />
+                android:id="@+id/withoutEffects"
+                android:title="@string/withoutEffects" />
             <item
-                android:id="@+id/DashPathEffect"
-                android:title="@string/Dot_dash"
-                />
+                android:id="@+id/dashPathEffect"
+                android:title="@string/dotDash" />
             <item
-                android:id="@+id/DiscretePathEffect"
-                android:title="@string/Broken_straight_line"
-                />
+                android:id="@+id/discretePathEffect"
+                android:title="@string/brokenStraightLine" />
         </menu>
     </item>
 
     <item
-        android:id="@+id/Save"
-        android:title="@string/Save" />
+        android:id="@+id/save"
+        android:title="@string/save" />
 
     <item
-        android:id="@+id/Eraser"
-        android:title="@string/Eraser" />
+        android:id="@+id/eraser"
+        android:title="@string/eraser" />
 
     <item
-        android:id="@+id/Clear"
-        android:layout_height="wrap_content"
-        android:title="@string/Clear" />
+        android:id="@+id/clear"
+        android:title="@string/clear" />
 
 </menu>

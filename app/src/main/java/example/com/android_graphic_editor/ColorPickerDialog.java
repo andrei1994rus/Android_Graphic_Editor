@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -12,123 +11,222 @@ import android.graphics.SweepGradient;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
+/**
+ *  Class of Dialog where select color.
+ */
 public class ColorPickerDialog extends Dialog
 {
-
+    /**
+     * This interface is used to change color.
+     */
     public interface OnColorChangedListener
     {
         void colorChanged(int color);
     }
 
-    private OnColorChangedListener mListener;
-    private int mInitialColor;
+    /**
+     * Object of interface OnColorChangedListener.
+     */
+    private OnColorChangedListener colorChangedListener;
 
+    /**
+     * color which was before calling of ColorPickerDialog.
+     */
+    private int initialColor;
+
+    /**
+     * This class is used to build ColorPickerDialog.
+     */
     private static class ColorPickerView extends View
     {
-        private Paint mPaint;
-        private Paint mCenterPaint;
-        private final int[] mColors;
-        private OnColorChangedListener mListener;
+        /**
+         * Object of class Paint. Is wheel.
+         */
+        private Paint wheelPaint;
 
-        ColorPickerView(Context c, OnColorChangedListener l, int color)
+        /**
+         * Object of class Paint. Is center.
+         */
+        private Paint centerPaint;
+
+        /**
+         * Colors which will be in ColorPickerDialog.
+         */
+        private final int[] colors;
+
+        /**
+         * Object of interface OnColorChangedListener. Is used to change color.
+         */
+        private OnColorChangedListener colorChangedListener;
+
+        /**
+         * Number PI.
+         */
+        private static final float PI=3.1415926f;
+
+        /**
+         * Boolean variable which recognizes: was center button selected or not.
+         */
+        private boolean trackingCenter;
+
+        /**
+         * Boolean variable which recognizes: does center button have highlight or not.
+         */
+        private boolean highlightCenter;
+
+        /**
+         * Center point X.
+         */
+        private static final int CENTER_X=100;
+
+        /**
+         * Center point Y.
+         */
+        private static final int CENTER_Y=100;
+
+        /**
+         * Radius of center.
+         */
+        private static final int CENTER_RADIUS=32;
+
+        /**
+         * Constructor of class ColorPickerView.
+         *
+         * @param context
+         *               object of class Context.
+         *
+         * @param colorChangedListener
+         *                            object of interface OnColorChangedListener.
+         *
+         * @param color
+         *             color which will be selected.
+         *
+         */
+        ColorPickerView(Context context, OnColorChangedListener colorChangedListener, int color)
         {
-            super(c);
-            mListener=l;
-            mColors=new int[]
+            super(context);
+            this.colorChangedListener=colorChangedListener;
+            colors=new int[]
             {
-                     Color.BLACK,Color.BLUE,Color.WHITE,Color.GRAY,Color.DKGRAY,Color.LTGRAY,Color.CYAN,
-                     Color.GREEN,Color.MAGENTA,Color.RED
+                    Color.BLACK,Color.BLUE,Color.WHITE,
+                    Color.GRAY,Color.DKGRAY,Color.LTGRAY,
+                    Color.CYAN,Color.GREEN,Color.MAGENTA,
+                    Color.RED
             };
 
-            Shader s = new SweepGradient(0, 0, mColors, null);
+            Shader s=new SweepGradient(0, 0, colors, null);
 
-            mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mPaint.setShader(s);
-            mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setStrokeWidth(32);
+            wheelPaint=new Paint(Paint.ANTI_ALIAS_FLAG);
+            wheelPaint.setShader(s);
+            wheelPaint.setStyle(Paint.Style.STROKE);
+            wheelPaint.setStrokeWidth(32);
 
-            mCenterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCenterPaint.setColor(color);
-            mCenterPaint.setStrokeWidth(5);
+            centerPaint=new Paint(Paint.ANTI_ALIAS_FLAG);
+            centerPaint.setColor(color);
+            centerPaint.setStrokeWidth(5);
         }
 
-        private boolean mTrackingCenter;
-        private boolean mHighlightCenter;
-
+        /**
+         * Performs operations which are associated with drawing.
+         *
+         * @param canvas
+         *              object of class Canvas which is used to draw.
+         *
+         */
         protected void onDraw(Canvas canvas)
         {
-            float r=CENTER_X-mPaint.getStrokeWidth()*0.5f;
+            float r=CENTER_X-wheelPaint.getStrokeWidth()*0.5f;
 
             canvas.translate(CENTER_X, CENTER_X);
 
-            canvas.drawOval(new RectF(-r, -r, r, r), mPaint);
-            canvas.drawCircle(0, 0, CENTER_RADIUS, mCenterPaint);
+            canvas.drawOval(new RectF(-r, -r, r, r), wheelPaint);
+            canvas.drawCircle(0, 0, CENTER_RADIUS, centerPaint);
 
-            if (mTrackingCenter)
+            if (trackingCenter)
             {
-                int c=mCenterPaint.getColor();
-                mCenterPaint.setStyle(Paint.Style.STROKE);
+                int c=centerPaint.getColor();
+                centerPaint.setStyle(Paint.Style.STROKE);
 
-                if (mHighlightCenter)
+                if (highlightCenter)
                 {
-                    mCenterPaint.setAlpha(0xFF);
+                    centerPaint.setAlpha(0xFF);
                 }
+
                 else
                 {
-                    mCenterPaint.setAlpha(0x80);
+                    centerPaint.setAlpha(0x80);
                 }
-                canvas.drawCircle(0, 0,CENTER_RADIUS+mCenterPaint.getStrokeWidth(),mCenterPaint);
 
-                mCenterPaint.setStyle(Paint.Style.FILL);
-                mCenterPaint.setColor(c);
+                canvas.drawCircle(0, 0,CENTER_RADIUS+centerPaint.getStrokeWidth(), centerPaint);
+
+                centerPaint.setStyle(Paint.Style.FILL);
+                centerPaint.setColor(c);
             }
         }
 
+        /**
+         * Sets size of ColorPickerDialog.
+         *
+         * @param widthMeasureSpec
+         *                        width which it's necessary to set.
+         *
+         * @param heightMeasureSpec
+         *                         height which it's necessary to set.
+         *
+         */
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
         {
             setMeasuredDimension(CENTER_X*2, CENTER_Y*2);
         }
 
-        private static final int CENTER_X=100;
-        private static final int CENTER_Y=100;
-        private static final int CENTER_RADIUS=32;
 
-        private int floatToByte(float x)
+        /**
+         * Gets code of every color separately: red, green, blue, alpha.
+         *
+         * @param c0
+         *          1st color separately: red, green, blue, alpha.
+         *
+         * @param c1
+         *          2nd color separately: red, green, blue, alpha.
+         *
+         * @param p
+         *         id of color.
+         *
+         * @return code of of every color separately: red, green, blue, alpha.
+         *
+         */
+        private int ave(int c0, int c1, float p)
         {
-            int n=java.lang.Math.round(x);
-            return n;
-        }
-        private int pinToByte(int n)
-        {
-            if (n<0)
-            {
-                n=0;
-            }
-            else if (n>255)
-            {
-                n=255;
-            }
-            return n;
-        }
-
-        private int ave(int s, int d, float p)
-        {
-            return s+java.lang.Math.round(p*(d-s));
+            return c0+java.lang.Math.round(p*(c1-c0));
         }
 
-        private int interpColor(int colors[], float unit)
+        /**
+         * Interprets color.
+         *
+         * @param colors
+         *              array of colors which are in ColorPickerDialog.
+         *
+         * @param unit
+         *            unit in multiple [0,1].
+         *
+         * @return color which was selected in wheel.
+         *
+         */
+        private int interpretationColor(int colors[], float unit)
         {
             if (unit<=0)
             {
                 return colors[0];
             }
+
             if (unit>=1)
             {
-                return colors[colors.length - 1];
+                return colors[colors.length-1];
             }
 
-            float p=unit * (colors.length - 1);
+            float p=unit*(colors.length-1);
             int i=(int)p;
             p-=i;
 
@@ -142,58 +240,39 @@ public class ColorPickerDialog extends Dialog
             return Color.argb(a, r, g, b);
         }
 
-        private int rotateColor(int color, float rad)
-        {
-            float deg=rad * 180 / 3.1415927f;
-            int r=Color.red(color);
-            int g=Color.green(color);
-            int b=Color.blue(color);
-
-            ColorMatrix cm=new ColorMatrix();
-            ColorMatrix tmp=new ColorMatrix();
-
-            cm.setRGB2YUV();
-            tmp.setRotate(0, deg);
-            cm.postConcat(tmp);
-            tmp.setYUV2RGB();
-            cm.postConcat(tmp);
-
-            final float[] a=cm.getArray();
-
-            int ir=floatToByte(a[0]*r+a[1]*g+a[2]*b);
-            int ig=floatToByte(a[5]*r+a[6]*g+a[7]*b);
-            int ib=floatToByte(a[10]*r+a[11]*g+a[12]*b);
-
-            return Color.argb(Color.alpha(color), pinToByte(ir),pinToByte(ig), pinToByte(ib));
-        }
-
-        private static final float PI = 3.1415926f;
-
+        /**
+         * Responds to touch events: ACTION_DOWN, ACTION_MOVE, ACTION_UP.
+         *
+         * @param event
+         *             object of class MotionEvent. Recognizes action.
+         *
+         * @return true.
+         */
         public boolean onTouchEvent(MotionEvent event)
         {
             float x=event.getX()-CENTER_X;
             float y=event.getY()-CENTER_Y;
-            boolean inCenter=java.lang.Math.sqrt(x*x + y*y)<=CENTER_RADIUS;
+            boolean inCenter=java.lang.Math.sqrt(x*x+y*y)<=CENTER_RADIUS;
 
             switch (event.getAction())
             {
                 case MotionEvent.ACTION_DOWN:
-                    mTrackingCenter = inCenter;
+                    trackingCenter=inCenter;
 
                     if (inCenter)
                     {
-                        mHighlightCenter = true;
+                        highlightCenter=true;
                         invalidate();
 
                         break;
                     }
 
                 case MotionEvent.ACTION_MOVE:
-                    if (mTrackingCenter)
+                    if (trackingCenter)
                     {
-                        if (mHighlightCenter != inCenter)
+                        if (highlightCenter!=inCenter)
                         {
-                            mHighlightCenter = inCenter;
+                            highlightCenter=inCenter;
                             invalidate();
                         }
                     }
@@ -208,22 +287,24 @@ public class ColorPickerDialog extends Dialog
                             unit+=1;
                         }
 
-                        mCenterPaint.setColor(interpColor(mColors, unit));
+                        centerPaint.setColor(interpretationColor(colors, unit));
                         invalidate();
                     }
+
                     break;
 
                 case MotionEvent.ACTION_UP:
-                    if (mTrackingCenter)
+                    if (trackingCenter)
                     {
                         if (inCenter)
                         {
-                            mListener.colorChanged(mCenterPaint.getColor());
+                            colorChangedListener.colorChanged(centerPaint.getColor());
                         }
 
-                        mTrackingCenter = false;
+                        trackingCenter=false;
                         invalidate();
                     }
+
                     break;
             }
 
@@ -231,32 +312,55 @@ public class ColorPickerDialog extends Dialog
         }
     }
 
-    public ColorPickerDialog(Context context,OnColorChangedListener listener,int initialColor)
+    /**
+     * Constructor of class ColorPickerDialog.
+     *
+     * @param context
+     *               object of class Context. Is used to create ColorPickerDialog.
+     *
+     * @param colorChangedListener
+     *                            object of interface OnColorChangedListener.
+     *
+     * @param initialColor
+     *                    color which was before calling of ColorPickerDialog.
+     *
+     */
+    public ColorPickerDialog(Context context,OnColorChangedListener colorChangedListener,int initialColor)
     {
         super(context);
 
-        mListener = listener;
-        mInitialColor = initialColor;
+        this.colorChangedListener=colorChangedListener;
+        this.initialColor=initialColor;
     }
 
 
+    /**
+     * Creates ColorPickerDialog.
+     *
+     * @param savedInstanceState
+     *                          object of class Bundle. Is saved instance state of activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        OnColorChangedListener l = new OnColorChangedListener()
+
+        OnColorChangedListener colorChangedListener=new OnColorChangedListener()
         {
+            /**
+             * Changes color.
+             *
+             * @param color
+             *             selected color.
+             */
             public void colorChanged(int color)
             {
-                mListener.colorChanged(color);
+                ColorPickerDialog.this.colorChangedListener.colorChanged(color);
                 dismiss();
             }
         };
 
-        setContentView(new ColorPickerView(getContext(), l, mInitialColor));
-        setTitle("Выберите цвет");
+        setContentView(new ColorPickerView(getContext(), colorChangedListener, initialColor));
+        setTitle("Select color");
     }
-
-
-
 }

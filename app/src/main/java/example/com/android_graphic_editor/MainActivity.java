@@ -43,24 +43,62 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * Class of Main Activity.
+ */
 public class MainActivity extends AppCompatActivity implements ColorPickerDialog.OnColorChangedListener
 {
+    /**
+     * Default size.
+     */
     static final int DEFAULT_SIZE=5;
 
-    final int WRITE_REQUEST=10;
+    /**
+     * Code of request.
+     */
+    static final int WRITE_REQUEST=10;
 
-    private Paint mPaint;
+    /**
+     * Object of class Paint. Is line.
+     */
+    private Paint linePaint;
 
-    private MaskFilter mEmboss;
+    /**
+     * Object of class MaskFilter. Is filter emboss.
+     */
+    private MaskFilter emboss;
 
-    private MaskFilter mBlur;
+    /**
+     * Object of class MaskFilter. Is filter blur.
+     */
+    private MaskFilter blur;
 
-    private DashPathEffect mDashPathEffect;
+    /**
+     * Object of class DashPathEffect. Is dot dash.
+     */
+    private DashPathEffect dotDash;
 
-    private DiscretePathEffect mDiscretePathEffect;
+    /**
+     * Object of class DiscretePathEffect. Is broken straight line.
+     */
+    private DiscretePathEffect brokenStraightLine;
 
+    /**
+     * Object of class DrawView. Is used for drawing.
+     */
     DrawView drawView;
 
+    /**
+     * Object of class View. Is used to save image.
+     */
+    View screenView;
+
+    /**
+     * Creates MainActivity.
+     *
+     * @param savedInstanceState
+     *                          object of class Bundle. Is saved instance state of activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -74,9 +112,9 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         if (api>=23)
         {
             if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED)
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED)
             {
-                start();
+                init();
             }
 
             else
@@ -106,10 +144,22 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         else if (api<23)
         {
-            start();
+            init();
         }
     }
 
+    /**
+     * This method is used for result of requesting permissions.
+     *
+     * @param requestCode
+     *                   code of request.
+     *
+     * @param permissions
+     *                   permissions.
+     *
+     * @param grantResults
+     *                    results of grant.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults)
     {
@@ -124,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                             Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED)
                     {
                         Toast.makeText(this,"Permission Granted",Toast.LENGTH_LONG).show();
-                        start();
+                        init();
                     }
                 }
 
@@ -138,40 +188,82 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
-    private void start()
+    /**
+     * Initialisation after check version and permissions.
+     */
+    private void init()
     {
-        mPaint=new Paint();
-        mPaint.setAntiAlias(true);
-        mPaint.setDither(true);
-        mPaint.setColor(Color.BLACK);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeJoin(Paint.Join.ROUND);
-        mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(DEFAULT_SIZE);
+        linePaint=new Paint();
+        linePaint.setAntiAlias(true);
+        linePaint.setDither(true);
+        linePaint.setColor(Color.BLACK);
+        linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setStrokeJoin(Paint.Join.ROUND);
+        linePaint.setStrokeCap(Paint.Cap.ROUND);
+        linePaint.setStrokeWidth(DEFAULT_SIZE);
 
-        mEmboss=new EmbossMaskFilter(new float[]
-                {
-                        1, 1, 1
-                },
-                0.4f,
-                6,
-                3.5f);
+        emboss=new EmbossMaskFilter(new float[]
+                                    {
+                                            1, 1, 1
+                                    },
+                                    0.4f,
+                                    6,
+                                    3.5f);
 
-        mBlur=new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL);
+        blur=new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL);
     }
 
+    /**
+     * Class of DrawView. Is used for drawing.
+     */
     public class DrawView extends View
     {
-        private Bitmap mBitmap;
-        private Canvas mCanvas;
-        private Path mPath;
-        private Paint mBitmapPaint;
+        /**
+         * Object of class Bitmap.
+         */
+        private Bitmap bitmap;
 
-        public DrawView(Context c)
+        /**
+         * Object of class Canvas. Is used for drawing.
+         */
+        private Canvas canvas;
+
+        /**
+         * Object of class Path. Is used to select PathEffect.
+         */
+        private Path path;
+
+        /**
+         * Object of class Paint. Is used to draw bitmap.
+         */
+        private Paint bitmapPaint;
+
+        /**
+         * Point X. Is used to recognize coordinate in oX and to draw.
+         */
+        private float x;
+
+        /**
+         * Point Y. Is used to recognize coordinate in oY and to draw.
+         */
+        private float y;
+
+        /**
+         * Touch tolerance. Is difference between old point X and new point X and between old point Y and new point Y.
+         */
+        private static final float TOUCH_TOLERANCE=4;
+
+        /**
+         * Constructor of class DrawView.
+         *
+         * @param context
+         *               object of class Context. Is used to create view where we shall be to draw.
+         */
+        public DrawView(Context context)
         {
-            super(c);
+            super(context);
 
-            mPath=new Path();
+            path=new Path();
             setFocusable(true);
             setFocusableInTouchMode(true);
 
@@ -179,76 +271,124 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
             float phase=0;
 
-            mDashPathEffect=new DashPathEffect(intervals, phase);
+            dotDash=new DashPathEffect(intervals, phase);
 
-            mDiscretePathEffect=new DiscretePathEffect(10, 5);
+            brokenStraightLine=new DiscretePathEffect(10, 5);
         }
 
+        /**
+         * Changes size of Bitmap.
+         *
+         * @param w
+         *         width.
+         *
+         * @param h
+         *         height.
+         *
+         * @param oldW
+         *            old width.
+         *
+         * @param oldH
+         *            old height.
+         */
         @Override
-        protected void onSizeChanged(int w, int h, int oldw, int oldh)
+        protected void onSizeChanged(int w, int h, int oldW, int oldH)
         {
-            super.onSizeChanged(w, h, oldw, oldh);
+            super.onSizeChanged(w, h, oldW, oldH);
 
-            mBitmap=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-            mCanvas=new Canvas(mBitmap);
+            bitmap=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            canvas=new Canvas(bitmap);
         }
 
+        /**
+         * Performs operations which are associated with drawing.
+         *
+         * @param canvas
+         *              object of class Canvas which used to draw.
+         */
         @Override
         protected void onDraw(Canvas canvas)
         {
             canvas.drawColor(Color.WHITE);
 
-            canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
+            canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
 
-            canvas.drawPath(mPath, mPaint);
+            canvas.drawPath(path, linePaint);
 
         }
 
-        private float mX, mY;
-
-        private static final float TOUCH_TOLERANCE=4;
-
+        /**
+         * ACTION_DOWN happens.
+         *
+         * @param x
+         *         point X.
+         *
+         * @param y
+         *         point Y.
+         */
         private void touch_start(float x, float y)
         {
-            mPath.reset();
-            mPath.moveTo(x, y);
-            mX = x;
-            mY = y;
+            path.reset();
+            path.moveTo(x, y);
+
+            this.x=x;
+            this.y=y;
         }
 
+        /**
+         * ACTION_MOVE happens.
+         *
+         * @param x
+         *          point X. Is used to draw.
+         *
+         * @param y
+         *         point Y. Is used to draw.
+         */
         private void touch_move(float x, float y)
         {
             boolean draw=true;
-            float dx=Math.abs(x-mX);
-            float dy=Math.abs(y-mY);
+            float dx=Math.abs(x-this.x);
+            float dy=Math.abs(y-this.y);
 
             if (dx>=TOUCH_TOLERANCE ||
                     dy>=TOUCH_TOLERANCE)
             {
-                mPath.quadTo(mX,
-                            mY,
-                            (x + mX)/2,
-                            (y + mY)/2);
-                mX = x;
-                mY = y;
+                path.quadTo(this.x,
+                            this.y,
+                            (x+this.x)/2,
+                            (y+this.y)/2);
 
+                this.x=x;
+                this.y=y;
             }
         }
 
+        /**
+         * ACTION_UP happens.
+         */
         private void touch_up()
         {
-            mPath.lineTo(mX, mY);
+            path.lineTo(x, y);
 
-            mCanvas.drawPath(mPath, mPaint);
+            canvas.drawPath(path, linePaint);
 
-            mPath.reset();
+            path.reset();
         }
 
+        /**
+         * Responds to touch events: ACTION_DOWN, ACTION_MOVE, ACTION_UP.
+         *
+         * @param event
+         *             object of class MotionEvent. Recognizes action.
+         *
+         * @return true.
+         *
+         */
         @Override
         public boolean onTouchEvent(MotionEvent event)
         {
-            float x = event.getX();
-            float y = event.getY();
+            float x=event.getX();
+            float y=event.getY();
 
             switch (event.getAction())
             {
@@ -275,11 +415,27 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         }
     }
 
+    /**
+     * Changes color.
+     *
+     * @param color
+     *             color of linePaint.
+     *
+     */
     public void colorChanged(int color)
     {
-        mPaint.setColor(color);
+        linePaint.setColor(color);
     }
 
+    /**
+     * Creates menu.
+     *
+     * @param menu
+     *            object of class Menu. Is used to create menu.
+     *
+     * @return true.
+     *
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -287,18 +443,27 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         return true;
     }
 
+    /**
+     * Reaction of select of item in Menu happens.
+     *
+     * @param item
+     *            object of class MenuItem. Recognizes selected item.
+     *
+     * @return true.
+     *
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
         switch (item.getItemId())
         {
-            case R.id.Color_Draw:
+            case R.id.colorLine:
                 new ColorPickerDialog(this,
                                         this,
-                                        mPaint.getColor()).show();
+                                        linePaint.getColor()).show();
                 return true;
 
-            case R.id.Size:
+            case R.id.sizeLine:
                 LayoutInflater inflater_size=(LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View layout_size=inflater_size.inflate(R.layout.size,(ViewGroup) findViewById(R.id.root));
                 AlertDialog.Builder builder_size=new AlertDialog.Builder(this).setView(layout_size);
@@ -318,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                     public void onProgressChanged(SeekBar seekBar, final int progress, boolean fromUser)
                     {
                         textViewSizeValue.setText("You selected size:"+progress);
-                        mPaint.setStrokeWidth(progress);
+                        linePaint.setStrokeWidth(progress);
 
                         buttonSelectSize.setOnClickListener(new OnClickListener()
                         {
@@ -351,56 +516,57 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
                 return true;
 
-            case R.id.Save:
-                takeScreenshot(true);
+            case R.id.save:
+                saveImage();
 
                 break;
 
-            case R.id.Emboss:
-                mPaint.setXfermode(null);
-                mPaint.setMaskFilter(mEmboss);
+            case R.id.emboss:
+                linePaint.setXfermode(null);
+                linePaint.setMaskFilter(emboss);
 
                 return true;
 
-            case R.id.Blur:
-                mPaint.setXfermode(null);
-                mPaint.setMaskFilter(mBlur);
+            case R.id.blur:
+                linePaint.setXfermode(null);
+                linePaint.setMaskFilter(blur);
 
                 return true;
 
-            case R.id.No_Effects:
-                mPaint.setPathEffect(null);
-                mPaint.setXfermode(null);
+            case R.id.withoutEffects:
+                linePaint.setPathEffect(null);
+                linePaint.setXfermode(null);
 
                 return true;
 
-            case R.id.DashPathEffect:
-                mPaint.setPathEffect(mDashPathEffect);
-                mPaint.setXfermode(null);
+            case R.id.dashPathEffect:
+                linePaint.setPathEffect(dotDash);
+                linePaint.setXfermode(null);
 
                 return true;
 
-            case R.id.DiscretePathEffect:
-                mPaint.setPathEffect(mDiscretePathEffect);
-                mPaint.setXfermode(null);
+            case R.id.discretePathEffect:
+                linePaint.setPathEffect(brokenStraightLine);
+                linePaint.setXfermode(null);
 
                 return true;
 
-            case R.id.Usual_Line:
-                mPaint.setMaskFilter(null);
-                mPaint.setXfermode(null);
+            case R.id.usualLine:
+                linePaint.setMaskFilter(null);
+                linePaint.setXfermode(null);
 
                 return true;
 
-            case R.id.Eraser:
-                mPaint.setMaskFilter(null);
-                mPaint.setPathEffect(null);
-                mPaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
+            case R.id.eraser:
+                linePaint.setMaskFilter(null);
+                linePaint.setPathEffect(null);
+                linePaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
 
                 return true;
 
-            case R.id.Clear:
-                setContentView(new DrawView(this));
+            case R.id.clear:
+                drawView=new DrawView(this);
+                setContentView(drawView);
                 Toast.makeText(getApplicationContext(), "All is cleared", Toast.LENGTH_LONG).show();
 
                 return true;
@@ -408,9 +574,14 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         return super.onOptionsItemSelected(item);
     }
 
-    private File takeScreenshot(boolean showToast)
+    /**
+     * Saves image.
+     *
+     * @return file (if file!=null), else null.
+     */
+    private File saveImage()
     {
-        View screenView=drawView;
+        screenView=drawView;
         screenView.setDrawingCacheEnabled(true);
 
         Bitmap cachedBitmap=screenView.getDrawingCache();
@@ -425,15 +596,16 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             Calendar cal=Calendar.getInstance();
             file=new File(path,
                     cal.get(Calendar.YEAR)+"_"+
-                            (1 + cal.get(Calendar.MONTH))+"_"+
-                             cal.get(Calendar.DAY_OF_MONTH)+"_"+
-                             cal.get(Calendar.HOUR_OF_DAY)+"_"+
-                             cal.get(Calendar.MINUTE)+"_"+
-                             cal.get(Calendar.SECOND)+
-                             ".png");
+                           (1 + cal.get(Calendar.MONTH))+"_"+
+                            cal.get(Calendar.DAY_OF_MONTH)+"_"+
+                            cal.get(Calendar.HOUR_OF_DAY)+"_"+
+                            cal.get(Calendar.MINUTE)+"_"+
+                            cal.get(Calendar.SECOND)+
+                            ".png");
 
             output=new FileOutputStream(file);
             copyBitmap.compress(CompressFormat.PNG, 100, output);
+            screenView.setDrawingCacheEnabled(false);
         }
 
         catch (FileNotFoundException e)
@@ -460,24 +632,30 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         if (file!=null)
         {
-            if (showToast)
-            {
-                Toast.makeText(getApplicationContext(),"Saved:"+file.getAbsolutePath(),Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(getApplicationContext(),
+                    "Saved file in path:"+
+                            file.getAbsolutePath(),
+                    Toast.LENGTH_LONG).show();
 
             Intent requestScan=new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 
             requestScan.setData(Uri.fromFile(file));
             sendBroadcast(requestScan);
 
+
             return file;
         }
+
         else
         {
             return null;
         }
     }
 
+    /**
+     * This method is performed when button "Back" (on phone or in toolbar).
+     * Calls AlertDialog to offer saving image.
+     */
     @Override
     public void onBackPressed()
     {
@@ -496,7 +674,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                         {
                             public void onClick(DialogInterface arg0, int arg1)
                             {
-                                takeScreenshot(true);
+                                saveImage();
                                 MainActivity.super.onBackPressed();
                             }
                         }).create().show();

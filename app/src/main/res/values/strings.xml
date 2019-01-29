@@ -1,19 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Android_Graphic_Editor</string>
-    <string name="Color_Draw">Цвет линии</string>
-    <string name="Clear">Очистка</string>
-    <string name="Save">Сохранение</string>
-    <string name="Blur">Смазанная линия</string>
-    <string name="Emboss">Линия с рельефом</string>
-    <string name="Eraser">Ластик</string>
-    <string name="Load">Загрузка</string>
-    <string name="Choose">Выберите толщину линии</string>
-    <string name="Size">Размер линии</string>
-    <string name="Select">Выбрать</string>
-    <string name="Usual_line">Обычная линия</string>
-    <string name="Lines">Линии</string>
-    <string name="Path_effects">Контурные эффекты</string>
-    <string name="Dot_dash">Точка-тире</string>
-    <string name="Broken_straight_line">Ломаная прямая линия</string>
-    <string name="No_effects">Без эффектов</string>
+
+ <string name="app_name">Graphic Editor Android</string>
+ <string name="lineColor">Color of Line</string>
+ <string name="clear">Clear</string>
+ <string name="save">Save</string>
+ <string name="blur">Blur</string>
+ <string name="emboss">Emboss</string>
+ <string name="eraser">Eraser</string>
+ <string name="selectSizeLine">Select size of line</string>
+ <string name="sizeLine">Size of line</string>
+ <string name="select">Select</string>
+ <string name="usualLine">Usual Line</string>
+ <string name="lines">Lines</string>
+ <string name="pathEffects">Effects of lines</string>
+ <string name="dotDash">Dot dash</string>
+ <string name="brokenStraightLine">Broken Straight Line</string>
+ <string name="withoutEffects">Without effects</string>
+
 </resources>

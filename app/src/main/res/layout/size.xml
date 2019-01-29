@@ -22,7 +22,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="34dp"
-        android:text="@string/Choose" />
+        android:text="@string/selectSizeLine" />
 
     <Button
         android:id="@+id/buttonSelectSize"
@@ -31,7 +31,7 @@
         android:layout_below="@+id/seekBarSize"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="68dp"
-        android:text="@string/Select" />
+        android:text="@string/select" />
 
     <TextView
         android:id="@+id/textViewSizeValue"
