@@ -23,8 +23,6 @@ import android.graphics.EmbossMaskFilter;
 import android.graphics.MaskFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffXfermode;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -51,12 +49,12 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     /**
      * Default size.
      */
-    static final int DEFAULT_SIZE=5;
+    private static final int DEFAULT_SIZE=5;
 
     /**
      * Code of request.
      */
-    static final int WRITE_REQUEST=10;
+    private static final int WRITE_REQUEST=10;
 
     /**
      * Object of class Paint. Is line.
@@ -86,12 +84,17 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     /**
      * Object of class DrawView. Is used for drawing.
      */
-    DrawView drawView;
+    private DrawView drawView;
 
-    /**
-     * Object of class View. Is used to save image.
+    /*
+      Current color of linePaint.
+    */
+    private int currentColor;
+
+    /*
+      Value which is used to define eraser.
      */
-    View screenView;
+    private boolean isEraser=false;
 
     /**
      * Creates MainActivity.
@@ -109,9 +112,9 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         int api=Build.VERSION.SDK_INT;
 
-        if (api>=23)
+        if(api>=23)
         {
-            if (ContextCompat.checkSelfPermission(this,
+            if(ContextCompat.checkSelfPermission(this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED)
             {
                 init();
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
             else
             {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE))
                 {
                     ActivityCompat.requestPermissions(MainActivity.this,
@@ -142,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             }
         }
 
-        else if (api<23)
+        else
         {
             init();
         }
@@ -163,17 +166,17 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     @Override
     public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults)
     {
-        switch (requestCode)
+        switch(requestCode)
         {
             case WRITE_REQUEST:
             {
-                if (grantResults.length>0 &&
+                if(grantResults.length>0 &&
                         grantResults[0]==PackageManager.PERMISSION_GRANTED)
                 {
-                    if (ContextCompat.checkSelfPermission(this,
+                    if(ContextCompat.checkSelfPermission(this,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED)
                     {
-                        Toast.makeText(this,"Permission Granted",Toast.LENGTH_LONG).show();
+                        Toast.makeText(this,"Permission granted",Toast.LENGTH_LONG).show();
                         init();
                     }
                 }
@@ -183,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                     Toast.makeText(this,"Permission isn't granted",Toast.LENGTH_LONG).show();
                 }
 
-                return;
             }
         }
     }
@@ -204,13 +206,13 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         emboss=new EmbossMaskFilter(new float[]
                                     {
-                                            1, 1, 1
+                                            1,1,1
                                     },
                                     0.4f,
                                     6,
                                     3.5f);
 
-        blur=new BlurMaskFilter(8, BlurMaskFilter.Blur.NORMAL);
+        blur=new BlurMaskFilter(8,BlurMaskFilter.Blur.NORMAL);
     }
 
     /**
@@ -267,13 +269,13 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             setFocusable(true);
             setFocusableInTouchMode(true);
 
-            float[] intervals=new float[] { 60.0f, 10.0f, 5.0f, 10.5f };
+            float[] intervals=new float[] { 60.0f,10.0f,5.0f,10.5f };
 
             float phase=0;
 
-            dotDash=new DashPathEffect(intervals, phase);
+            dotDash=new DashPathEffect(intervals,phase);
 
-            brokenStraightLine=new DiscretePathEffect(10, 5);
+            brokenStraightLine=new DiscretePathEffect(10,5);
         }
 
         /**
@@ -292,11 +294,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
          *            old height.
          */
         @Override
-        protected void onSizeChanged(int w, int h, int oldW, int oldH)
+        protected void onSizeChanged(int w,int h,int oldW,int oldH)
         {
-            super.onSizeChanged(w, h, oldW, oldH);
+            super.onSizeChanged(w,h,oldW,oldH);
 
-            bitmap=Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            bitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
             canvas=new Canvas(bitmap);
         }
 
@@ -311,9 +313,9 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         {
             canvas.drawColor(Color.WHITE);
 
-            canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
+            canvas.drawBitmap(bitmap,0,0,bitmapPaint);
 
-            canvas.drawPath(path, linePaint);
+            canvas.drawPath(path,linePaint);
 
         }
 
@@ -326,10 +328,10 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
          * @param y
          *         point Y.
          */
-        private void touch_start(float x, float y)
+        private void touch_start(float x,float y)
         {
             path.reset();
-            path.moveTo(x, y);
+            path.moveTo(x,y);
 
             this.x=x;
             this.y=y;
@@ -344,19 +346,18 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
          * @param y
          *         point Y. Is used to draw.
          */
-        private void touch_move(float x, float y)
+        private void touch_move(float x,float y)
         {
-            boolean draw=true;
             float dx=Math.abs(x-this.x);
             float dy=Math.abs(y-this.y);
 
-            if (dx>=TOUCH_TOLERANCE ||
+            if(dx>=TOUCH_TOLERANCE ||
                     dy>=TOUCH_TOLERANCE)
             {
                 path.quadTo(this.x,
                             this.y,
-                            (x+this.x)/2,
-                            (y+this.y)/2);
+                        (x + this.x)/2,
+                        (y + this.y)/2);
 
                 this.x=x;
                 this.y=y;
@@ -368,9 +369,9 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
          */
         private void touch_up()
         {
-            path.lineTo(x, y);
+            path.lineTo(x,y);
 
-            canvas.drawPath(path, linePaint);
+            canvas.drawPath(path,linePaint);
 
             path.reset();
         }
@@ -390,25 +391,31 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
             float x=event.getX();
             float y=event.getY();
 
-            switch (event.getAction())
+            switch(event.getAction())
             {
                 case MotionEvent.ACTION_DOWN:
-                    touch_start(x, y);
+                {
+                    touch_start(x,y);
                     invalidate();
 
                     break;
+                }
 
                 case MotionEvent.ACTION_MOVE:
-                    touch_move(x, y);
+                {
+                    touch_move(x,y);
                     invalidate();
 
                     break;
+                }
 
                 case MotionEvent.ACTION_UP:
+                {
                     touch_up();
                     invalidate();
 
                     break;
+                }
             }
 
             return true;
@@ -439,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.menu,menu);
         return true;
     }
 
@@ -455,140 +462,235 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        switch (item.getItemId())
+        switch(item.getItemId())
         {
             case R.id.colorLine:
-                new ColorPickerDialog(this,
-                                        this,
-                                        linePaint.getColor()).show();
+            {
+                if(!isEraser)
+                {
+                    new ColorPickerDialog(this,
+                            this,
+                            linePaint.getColor()).show();
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
+
                 return true;
+            }
 
             case R.id.sizeLine:
-                LayoutInflater inflater_size=(LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                View layout_size=inflater_size.inflate(R.layout.size,(ViewGroup) findViewById(R.id.root));
-                AlertDialog.Builder builder_size=new AlertDialog.Builder(this).setView(layout_size);
-                final AlertDialog alertDialog_size=builder_size.create();
-                alertDialog_size.show();
-
-                SeekBar seekBarSize=(SeekBar) layout_size.findViewById(R.id.seekBarSize);
-                seekBarSize.setProgress(DEFAULT_SIZE);
-
-                final Button buttonSelectSize=(Button) layout_size.findViewById(R.id.buttonSelectSize);
-
-                final TextView textViewSizeValue=(TextView) layout_size.findViewById(R.id.textViewSizeValue);
-                textViewSizeValue.setText("Default size:"+DEFAULT_SIZE);
-
-                seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-                {
-                    public void onProgressChanged(SeekBar seekBar, final int progress, boolean fromUser)
-                    {
-                        textViewSizeValue.setText("You selected size:"+progress);
-                        linePaint.setStrokeWidth(progress);
-
-                        buttonSelectSize.setOnClickListener(new OnClickListener()
-                        {
-                            public void onClick(View v)
-                            {
-                                if (progress==0)
-                                {
-                                    Toast.makeText(getApplicationContext(),"Select size not less than 1",
-                                            Toast.LENGTH_LONG).show();
-                                }
-
-                                else
-                                {
-                                    alertDialog_size.dismiss();
-                                }
-                            }
-                        });
-                    }
-
-                    public void onStartTrackingTouch(SeekBar seekBar)
-                    {
-
-                    }
-
-                    public void onStopTrackingTouch(SeekBar seekBar)
-                    {
-
-                    }
-                });
+            {
+                createSelectSizeDialog();
 
                 return true;
+            }
 
             case R.id.save:
+            {
                 saveImage();
 
-                break;
+                return true;
+            }
 
             case R.id.emboss:
-                linePaint.setXfermode(null);
-                linePaint.setMaskFilter(emboss);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setMaskFilter(emboss);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.blur:
-                linePaint.setXfermode(null);
-                linePaint.setMaskFilter(blur);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setMaskFilter(blur);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.withoutEffects:
-                linePaint.setPathEffect(null);
-                linePaint.setXfermode(null);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setPathEffect(null);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.dashPathEffect:
-                linePaint.setPathEffect(dotDash);
-                linePaint.setXfermode(null);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setPathEffect(dotDash);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.discretePathEffect:
-                linePaint.setPathEffect(brokenStraightLine);
-                linePaint.setXfermode(null);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setPathEffect(brokenStraightLine);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.usualLine:
-                linePaint.setMaskFilter(null);
-                linePaint.setXfermode(null);
+            {
+                if(!isEraser)
+                {
+                    linePaint.setMaskFilter(null);
+                }
+
+                else
+                {
+                    Toast.makeText(this,"It's necessary to remove eraser",Toast.LENGTH_LONG).show();
+                }
 
                 return true;
+            }
 
             case R.id.eraser:
-                linePaint.setMaskFilter(null);
-                linePaint.setPathEffect(null);
-                linePaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
+            {
+                if(!isEraser)
+                {
+                    currentColor=linePaint.getColor();
+
+                    linePaint.setColor(Color.WHITE);
+                    linePaint.setMaskFilter(null);
+                    linePaint.setPathEffect(null);
+
+                    isEraser=true;
+                    item.setTitle(getResources().getString(R.string.removeEraser));
+                }
+
+                else
+                {
+                    linePaint.setColor(currentColor);
+
+                    isEraser=false;
+                    item.setTitle(getResources().getString(R.string.eraser));
+                }
 
                 return true;
+            }
 
             case R.id.clear:
-                drawView=new DrawView(this);
+            {
+                drawView=new DrawView(getApplicationContext());
                 setContentView(drawView);
-                Toast.makeText(getApplicationContext(), "All is cleared", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"All is cleared",Toast.LENGTH_LONG).show();
 
                 return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void createSelectSizeDialog()
+    {
+        LayoutInflater inflater_size=(LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout_size=inflater_size.inflate(R.layout.size,(ViewGroup) findViewById(R.id.root));
+        AlertDialog.Builder builder_size=new AlertDialog.Builder(this).setView(layout_size);
+        final AlertDialog alertDialog_size=builder_size.create();
+        alertDialog_size.show();
+
+        SeekBar seekBarSize=layout_size.findViewById(R.id.seekBarSize);
+        seekBarSize.setProgress(DEFAULT_SIZE);
+
+        final Button buttonSelectSize=layout_size.findViewById(R.id.buttonSelectSize);
+
+        final TextView textViewSizeValue=layout_size.findViewById(R.id.textViewSizeValue);
+        textViewSizeValue.setText("Default size:"+DEFAULT_SIZE);
+
+        seekBarSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            public void onProgressChanged(SeekBar seekBar,final int progress,boolean fromUser)
+            {
+                textViewSizeValue.setText("You selected size:"+progress);
+                linePaint.setStrokeWidth(progress);
+
+                buttonSelectSize.setOnClickListener(new OnClickListener()
+                {
+                    public void onClick(View v)
+                    {
+                        if(progress==0)
+                        {
+                            Toast.makeText(getApplicationContext(),"Select size not less than 1",
+                                    Toast.LENGTH_LONG).show();
+                        }
+
+                        else
+                        {
+                            alertDialog_size.dismiss();
+                        }
+                    }
+                });
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+
+            }
+        });
+    }
+
     /**
      * Saves image.
-     *
-     * @return file (if file!=null), else null.
      */
-    private File saveImage()
+    private void saveImage()
     {
-        screenView=drawView;
+        /*
+          Object of class View. Is used to save image.
+         */
+        View screenView=drawView;
         screenView.setDrawingCacheEnabled(true);
 
         Bitmap cachedBitmap=screenView.getDrawingCache();
-        Bitmap copyBitmap=cachedBitmap.copy(Bitmap.Config.RGB_565, true);
+        Bitmap copyBitmap=cachedBitmap.copy(Bitmap.Config.RGB_565,true);
 
         FileOutputStream output=null;
-        File file=null;
+        File file;
 
         try
         {
@@ -604,11 +706,11 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
                             ".png");
 
             output=new FileOutputStream(file);
-            copyBitmap.compress(CompressFormat.PNG, 100, output);
+            copyBitmap.compress(CompressFormat.PNG,100,output);
             screenView.setDrawingCacheEnabled(false);
         }
 
-        catch (FileNotFoundException e)
+        catch(FileNotFoundException e)
         {
             file=null;
             e.printStackTrace();
@@ -616,21 +718,21 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
         finally
         {
-            if (output!=null)
+            if(output!=null)
             {
                 try
                 {
                     output.close();
                 }
 
-                catch (IOException e)
+                catch(IOException e)
                 {
                     e.printStackTrace();
                 }
             }
         }
 
-        if (file!=null)
+        if(file!=null)
         {
             Toast.makeText(getApplicationContext(),
                     "Saved file in path:"+
@@ -641,14 +743,6 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
 
             requestScan.setData(Uri.fromFile(file));
             sendBroadcast(requestScan);
-
-
-            return file;
-        }
-
-        else
-        {
-            return null;
         }
     }
 
@@ -662,17 +756,17 @@ public class MainActivity extends AppCompatActivity implements ColorPickerDialog
         new AlertDialog.Builder(this)
                         .setTitle("You exit from application")
                         .setMessage("Do you want to save image?")
-                        .setNegativeButton("No", new DialogInterface.OnClickListener()
+                        .setNegativeButton("No",new DialogInterface.OnClickListener()
                         {
-                            public void onClick(DialogInterface arg0, int arg1)
+                            public void onClick(DialogInterface arg0,int arg1)
                             {
                                 MainActivity.super.onBackPressed();
                             }
                         })
-                        .setNeutralButton("Cancel", null)
-                        .setPositiveButton("Save", new DialogInterface.OnClickListener()
+                        .setNeutralButton("Cancel",null)
+                        .setPositiveButton("Save",new DialogInterface.OnClickListener()
                         {
-                            public void onClick(DialogInterface arg0, int arg1)
+                            public void onClick(DialogInterface arg0,int arg1)
                             {
                                 saveImage();
                                 MainActivity.super.onBackPressed();

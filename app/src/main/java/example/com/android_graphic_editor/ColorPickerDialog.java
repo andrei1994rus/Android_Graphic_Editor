@@ -11,7 +11,6 @@ import android.graphics.SweepGradient;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 /**
  *  Class of Dialog where select color.
@@ -32,7 +31,7 @@ public class ColorPickerDialog extends Dialog
     private OnColorChangedListener colorChangedListener;
 
     /**
-     * color which was before calling of ColorPickerDialog.
+     * Color which was before calling of ColorPickerDialog.
      */
     private int initialColor;
 
@@ -104,9 +103,10 @@ public class ColorPickerDialog extends Dialog
          *             color which will be selected.
          *
          */
-        ColorPickerView(Context context, OnColorChangedListener colorChangedListener, int color)
+        ColorPickerView(Context context,OnColorChangedListener colorChangedListener,int color)
         {
             super(context);
+
             this.colorChangedListener=colorChangedListener;
             colors=new int[]
             {
@@ -116,7 +116,7 @@ public class ColorPickerDialog extends Dialog
                     Color.RED
             };
 
-            Shader s=new SweepGradient(0, 0, colors, null);
+            Shader s=new SweepGradient(0,0,colors,null);
 
             wheelPaint=new Paint(Paint.ANTI_ALIAS_FLAG);
             wheelPaint.setShader(s);
@@ -139,17 +139,17 @@ public class ColorPickerDialog extends Dialog
         {
             float r=CENTER_X-wheelPaint.getStrokeWidth()*0.5f;
 
-            canvas.translate(CENTER_X, CENTER_X);
+            canvas.translate(CENTER_X,CENTER_X);
 
-            canvas.drawOval(new RectF(-r, -r, r, r), wheelPaint);
-            canvas.drawCircle(0, 0, CENTER_RADIUS, centerPaint);
+            canvas.drawOval(new RectF(-r,-r,r,r),wheelPaint);
+            canvas.drawCircle(0,0,CENTER_RADIUS,centerPaint);
 
-            if (trackingCenter)
+            if(trackingCenter)
             {
                 int c=centerPaint.getColor();
                 centerPaint.setStyle(Paint.Style.STROKE);
 
-                if (highlightCenter)
+                if(highlightCenter)
                 {
                     centerPaint.setAlpha(0xFF);
                 }
@@ -159,7 +159,7 @@ public class ColorPickerDialog extends Dialog
                     centerPaint.setAlpha(0x80);
                 }
 
-                canvas.drawCircle(0, 0,CENTER_RADIUS+centerPaint.getStrokeWidth(), centerPaint);
+                canvas.drawCircle(0,0,CENTER_RADIUS+centerPaint.getStrokeWidth(),centerPaint);
 
                 centerPaint.setStyle(Paint.Style.FILL);
                 centerPaint.setColor(c);
@@ -176,9 +176,9 @@ public class ColorPickerDialog extends Dialog
          *                         height which it's necessary to set.
          *
          */
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+        protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec)
         {
-            setMeasuredDimension(CENTER_X*2, CENTER_Y*2);
+            setMeasuredDimension(CENTER_X*2,CENTER_Y*2);
         }
 
 
@@ -197,9 +197,9 @@ public class ColorPickerDialog extends Dialog
          * @return code of of every color separately: red, green, blue, alpha.
          *
          */
-        private int ave(int c0, int c1, float p)
+        private int ave(int c0,int c1,float p)
         {
-            return c0+java.lang.Math.round(p*(c1-c0));
+            return c0+(java.lang.Math.round(p*(c1-c0)));
         }
 
         /**
@@ -214,14 +214,14 @@ public class ColorPickerDialog extends Dialog
          * @return color which was selected in wheel.
          *
          */
-        private int interpretationColor(int colors[], float unit)
+        private int interpretationColor(int[] colors,float unit)
         {
-            if (unit<=0)
+            if(unit<=0)
             {
                 return colors[0];
             }
 
-            if (unit>=1)
+            if(unit>=1)
             {
                 return colors[colors.length-1];
             }
@@ -232,12 +232,12 @@ public class ColorPickerDialog extends Dialog
 
             int c0=colors[i];
             int c1=colors[i+1];
-            int a=ave(Color.alpha(c0), Color.alpha(c1), p);
-            int r=ave(Color.red(c0), Color.red(c1), p);
-            int g=ave(Color.green(c0), Color.green(c1), p);
-            int b=ave(Color.blue(c0), Color.blue(c1), p);
+            int a=ave(Color.alpha(c0),Color.alpha(c1),p);
+            int r=ave(Color.red(c0),Color.red(c1),p);
+            int g=ave(Color.green(c0),Color.green(c1),p);
+            int b=ave(Color.blue(c0),Color.blue(c1),p);
 
-            return Color.argb(a, r, g, b);
+            return Color.argb(a,r,g,b);
         }
 
         /**
@@ -257,20 +257,23 @@ public class ColorPickerDialog extends Dialog
             switch (event.getAction())
             {
                 case MotionEvent.ACTION_DOWN:
+                {
                     trackingCenter=inCenter;
 
-                    if (inCenter)
+                    if(inCenter)
                     {
                         highlightCenter=true;
                         invalidate();
 
                         break;
                     }
+                }
 
                 case MotionEvent.ACTION_MOVE:
-                    if (trackingCenter)
+                {
+                    if(trackingCenter)
                     {
-                        if (highlightCenter!=inCenter)
+                        if(highlightCenter!=inCenter)
                         {
                             highlightCenter=inCenter;
                             invalidate();
@@ -279,24 +282,26 @@ public class ColorPickerDialog extends Dialog
 
                     else
                     {
-                        float angle=(float)java.lang.Math.atan2(y, x);
+                        float angle=(float) java.lang.Math.atan2(y,x);
                         float unit=angle/(2*PI);
 
-                        if (unit<0)
+                        if(unit<0)
                         {
                             unit+=1;
                         }
 
-                        centerPaint.setColor(interpretationColor(colors, unit));
+                        centerPaint.setColor(interpretationColor(colors,unit));
                         invalidate();
                     }
 
                     break;
+                }
 
                 case MotionEvent.ACTION_UP:
-                    if (trackingCenter)
+                {
+                    if(trackingCenter)
                     {
-                        if (inCenter)
+                        if(inCenter)
                         {
                             colorChangedListener.colorChanged(centerPaint.getColor());
                         }
@@ -306,6 +311,7 @@ public class ColorPickerDialog extends Dialog
                     }
 
                     break;
+                }
             }
 
             return true;
@@ -325,9 +331,9 @@ public class ColorPickerDialog extends Dialog
      *                    color which was before calling of ColorPickerDialog.
      *
      */
-    public ColorPickerDialog(Context context,OnColorChangedListener colorChangedListener,int initialColor)
+    ColorPickerDialog(Context context,OnColorChangedListener colorChangedListener,int initialColor)
     {
-        super(context);
+        super(context,R.style.CustomDialog);
 
         this.colorChangedListener=colorChangedListener;
         this.initialColor=initialColor;
@@ -360,7 +366,7 @@ public class ColorPickerDialog extends Dialog
             }
         };
 
-        setContentView(new ColorPickerView(getContext(), colorChangedListener, initialColor));
+        setContentView(new ColorPickerView(getContext(),colorChangedListener,initialColor));
         setTitle("Select color");
     }
 }

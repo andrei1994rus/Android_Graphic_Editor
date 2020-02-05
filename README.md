@@ -1,2 +1,2 @@
 # Android_Graphic_Editor
-Vector Graphic editor without editing image.
+Vector graphic editor without uploading image.

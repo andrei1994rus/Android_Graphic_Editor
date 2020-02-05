@@ -8,6 +8,7 @@
  <string name="blur">Blur</string>
  <string name="emboss">Emboss</string>
  <string name="eraser">Eraser</string>
+ <string name="removeEraser">Remove Eraser</string>
  <string name="selectSizeLine">Select size of line</string>
  <string name="sizeLine">Size of line</string>
  <string name="select">Select</string>

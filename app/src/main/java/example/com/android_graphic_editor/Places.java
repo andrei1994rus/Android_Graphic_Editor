@@ -1,7 +1,6 @@
 package example.com.android_graphic_editor;
 
 import java.io.File;
-import java.io.IOException;
 
 import android.os.Environment;
 
@@ -17,7 +16,7 @@ public class Places
      * @return path of album.
      *
      */
-    public static File getScreenshotFolder()
+    static File getScreenshotFolder()
     {
         File path=new File(Environment.getExternalStorageDirectory(),
                 "/Graphic Editor/");
